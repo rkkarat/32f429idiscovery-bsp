@@ -74,18 +74,6 @@ config using the `cortex-debug` extension.
   touch buttons ("Clear" / "Shutdown") described above — no PC connection
   needed to operate them.
 
-## Where this program lives
-
-- Git worktree (workspace folder):
-  `C:\Users\Rudolf Krejcik\copilot-worktrees\32f429idiscovery-bsp\rkkarat-refactored-system`
-- Branch: **`freertos-lcd-demo`**
-- Remote `origin` points to ST's official upstream repo
-  (`https://github.com/STMicroelectronics/32f429idiscovery-bsp.git`); this
-  branch has **not been pushed** anywhere — it only exists locally.
-- Key paths inside the repo: `Core/Src/main.c` (application logic),
-  `Makefile` (build), `.vscode/` (build/flash/debug tasks), `README.md`
-  (full project structure and dependency sourcing).
-
 ## The bug that caused "only LED blinks, no display"
 
 FreeRTOS's Cortex-M port takes over `SysTick_Handler` to drive its scheduler
@@ -143,9 +131,6 @@ generated `.d` dependency files in the Makefile.
 
 ## Git status note
 
-As of this writing, only this explanation file and the `Drivers/BSP/STM32F429I-Discovery`
-file renames have been committed. Everything else listed above (`Core/`,
-`Drivers/CMSIS/`, `Drivers/STM32F4xx_HAL_Driver/`, `Drivers/BSP/Components/`,
-`Middlewares/`, `Utilities/`, `Makefile`, `STM32F429ZITx_FLASH.ld`, `.vscode/`,
-`.gitignore`) is still untracked/uncommitted — run `git add -A && git commit`
-to save the full project into version control.
+Everything described in this document is committed on the `freertos-lcd-demo`
+branch (see "How and where to access it" above for the latest commit). The
+branch is local-only and has not been pushed to any remote.
