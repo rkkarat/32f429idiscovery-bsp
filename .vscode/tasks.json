@@ -16,7 +16,7 @@
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
-          "regexp": "^(.*)$",
+          "regexp": "^(.*\\b[Ee]rror\\b.*)$",
           "file": 1,
           "location": 1,
           "message": 1
@@ -30,9 +30,34 @@
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
-      "label": "Build and Start pyOCD GDB Server",
+      "label": "Build Clear-Display Firmware",
+      "type": "shell",
+      "command": "make",
+      "args": ["clear"],
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Erase Board",
+      "type": "shell",
+      "command": "arm-none-eabi-gdb",
+      "args": [
+        "-q",
+        "-batch",
+        "-ex", "set remotetimeout 300",
+        "-ex", "target extended-remote localhost:3333",
+        "-ex", "monitor reset halt",
+        "-ex", "monitor erase",
+        "-ex", "monitor reset halt",
+        "-ex", "monitor erase",
+        "-ex", "monitor reset halt",
+        "-ex", "file build-clear/clear-display.elf",
+        "-ex", "load",
+        "-ex", "monitor reset",
+        "-ex", "detach"
+      ],
       "dependsOrder": "sequence",
-      "dependsOn": ["Build Firmware", "Start pyOCD GDB Server"]
+      "dependsOn": ["Build Clear-Display Firmware", "Start pyOCD GDB Server"],
+      "problemMatcher": []
     }
   ]
 }

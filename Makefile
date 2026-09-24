@@ -109,8 +109,13 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR)
 
+# Minimal firmware that only blanks the LCD, then halts. Used after erasing the
+# board so the display doesn't keep showing the last image from before the erase.
+clear:
+	"$(MAKE)" BUILD_DIR=build-clear TARGET=clear-display C_DEFS="$(C_DEFS) -DCLEAR_DISPLAY_ONLY" all
+
 # Flash with the free, open-source st-flash tool (stlink-org/stlink), if installed.
 flash: $(BUILD_DIR)/$(TARGET).bin
 	st-flash write $(BUILD_DIR)/$(TARGET).bin 0x08000000
 
-.PHONY: all clean flash
+.PHONY: all clean clear flash
