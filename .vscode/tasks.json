@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Firmware",
+      "type": "shell",
+      "command": "make",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Start pyOCD GDB Server",
+      "type": "shell",
+      "command": "${env:APPDATA}\\Python\\Python313\\Scripts\\pyocd.exe",
+      "args": ["gdbserver", "--target", "stm32f429xi"],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(.*)$",
+          "file": 1,
+          "location": 1,
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*gdbserver.*",
+          "endsPattern": "GDB server listening on port 3333"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Build and Start pyOCD GDB Server",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build Firmware", "Start pyOCD GDB Server"]
+    }
+  ]
+}

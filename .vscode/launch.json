@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "STM32F429 Debug (GDB local + pyOCD)",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/build/stm32F429freertos-lcd-demo.elf",
+      "MIMode": "gdb",
+      "miDebuggerPath": "arm-none-eabi-gdb",
+      "miDebuggerServerAddress": "localhost:3333",
+      "preLaunchTask": "Build and Start pyOCD GDB Server",
+      "stopAtEntry": true,
+      "externalConsole": false,
+      "setupCommands": [
+        { "text": "set architecture arm", "ignoreFailures": true },
+        { "text": "monitor reset halt" },
+        { "text": "load" }
+      ]
+    }
+  ]
+}
