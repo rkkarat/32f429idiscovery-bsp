@@ -43,10 +43,13 @@ config using the `cortex-debug` extension.
 
 - **Workspace / git worktree path (this machine):**
   `C:\Users\Rudolf Krejcik\copilot-worktrees\32f429idiscovery-bsp\rkkarat-refactored-system`
-- **Git branch:** `freertos-lcd-demo` (local only — not pushed to any remote;
-  `origin` points to ST's official upstream repo, not a personal fork).
+- **Git branch:** `freertos-lcd-demo`, latest commit `670d768`
+  ("Add touch menu (Clear/Shutdown buttons), Erase Board task, clear-display
+  build variant, and updated docs") — local only, not pushed to any remote;
+  `origin` points to ST's official upstream repo, not a personal fork.
   ```powershell
   git checkout freertos-lcd-demo
+  git log --oneline
   ```
 - **Build** (requires `arm-none-eabi-gcc` + GNU `make` on `PATH`):
   ```powershell
