@@ -55,12 +55,15 @@ static void LCD_Task(void *argument)
   BSP_LCD_Init();
   BSP_LCD_LayerDefaultInit(0, LCD_FRAME_BUFFER);
   BSP_LCD_SelectLayer(0);
-  BSP_LCD_SetFont(&Font24);
   BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
   BSP_LCD_Clear(LCD_COLOR_WHITE);
+  /* Font16 (11px/char) is required here: the panel is 240px wide, and BSP_LCD_DisplayStringAt's
+     centering math underflows (uint32_t wraparound) for strings that don't fit at Font24 (17px/char). */
+  BSP_LCD_SetFont(&Font16);
   BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"FreeRTOS + LTDC Demo", CENTER_MODE);
-  BSP_LCD_DisplayStringAt(0, 45, (uint8_t *)"STM32F429I-Discovery", CENTER_MODE);
+  BSP_LCD_DisplayStringAt(0, 30, (uint8_t *)"STM32F429I-Discovery", CENTER_MODE);
+  BSP_LCD_SetFont(&Font24);
 
   for (;;)
   {

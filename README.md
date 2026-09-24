@@ -2,6 +2,83 @@
 
 ![latest tag](https://img.shields.io/github/v/tag/STMicroelectronics/stm32f429i-discovery.svg?color=brightgreen)
 
+## FreeRTOS + LCD demo project
+
+This repository has been extended from the standalone BSP component into a
+complete, buildable firmware project for the STM32F429I-Discovery board:
+FreeRTOS running two tasks, one of which drives the onboard LTDC/ILI9341 LCD.
+Everything is built with free, open-source tools only — no CubeMX/.ioc file,
+no paid IDE or compiler.
+
+See [STM32F429_FreeRTOS_LCD_Explanation.md](STM32F429_FreeRTOS_LCD_Explanation.md)
+for the story of the SysTick/FreeRTOS integration bug and its fix.
+
+### What it does
+
+- `LED_Task` toggles LED3 every 500 ms.
+- `LCD_Task` initializes the LTDC/ILI9341 display (240x320) and continuously
+  draws a title, a live uptime counter, and an animated bouncing box.
+
+### Project structure
+
+| Path | Contents |
+|---|---|
+| `Core/Inc`, `Core/Src` | Application code: `main.c`, `stm32f4xx_it.c`, `stm32f4xx_hal_conf.h`, `FreeRTOSConfig.h`, `system_stm32f4xx.c` |
+| `Drivers/CMSIS` | ARM CMSIS core headers + ST's `cmsis_device_f4` (device headers, startup file) |
+| `Drivers/STM32F4xx_HAL_Driver` | ST's STM32F4 HAL/LL drivers |
+| `Drivers/BSP/STM32F429I-Discovery` | Board BSP: LCD, touchscreen, SDRAM, IO, EEPROM, gyroscope |
+| `Drivers/BSP/Components` | Legacy-API display/touch/gyro component drivers (`ili9341`, `stmpe811`, `l3gd20`, `Common`) matched to the BSP above |
+| `Middlewares/Third_Party/FreeRTOS` | FreeRTOS kernel (MIT), Cortex-M4F GCC port, `heap_4` allocator |
+| `Utilities/Fonts` | Font bitmaps used by the LCD driver |
+| `Makefile`, `STM32F429ZITx_FLASH.ld` | Free GNU Arm Embedded Toolchain (`arm-none-eabi-gcc`) build + link setup |
+| `.vscode/tasks.json`, `.vscode/launch.json` | Build task + local debug workflow (see below) |
+
+### Dependency sourcing
+
+All dependencies were fetched directly from their official free/open-source
+GitHub repositories (not via STM32CubeMX):
+
+- FreeRTOS kernel: [FreeRTOS/FreeRTOS-Kernel](https://github.com/FreeRTOS/FreeRTOS-Kernel) (MIT license)
+- CMSIS + HAL: [STMicroelectronics/cmsis_device_f4](https://github.com/STMicroelectronics/cmsis_device_f4), [STMicroelectronics/stm32f4xx_hal_driver](https://github.com/STMicroelectronics/stm32f4xx_hal_driver)
+- Fonts, and the **legacy-API** `ili9341`/`stmpe811`/`l3gd20`/`Common` component
+  drivers required by this BSP's `LCD_DrvTypeDef`/`TS_DrvTypeDef` interfaces,
+  pulled from an older `STM32CubeF4` tag (`v1.26.2`), since the current
+  per-component GitHub repos ship an incompatible newer API.
+
+### Building
+
+Requires `arm-none-eabi-gcc` and GNU `make` on `PATH`.
+
+```powershell
+make            # builds build/stm32F429freertos-lcd-demo.elf/.hex/.bin
+make clean
+```
+
+### Flashing / debugging (no OpenOCD, no paid tools)
+
+Uses [pyOCD](https://github.com/pyocd/pyOCD) (free, Apache-2.0) as a local GDB
+server, and the local `arm-none-eabi-gdb` as the debugger front end — this
+avoids any dependency on OpenOCD or a paid IDE/toolchain.
+
+- In VS Code: Run and Debug → **STM32F429 Debug (GDB local + pyOCD)** (builds
+  and flashes automatically via `.vscode/tasks.json` + `launch.json`).
+- Manually:
+  ```powershell
+  pyocd gdbserver --target stm32f429xi
+  arm-none-eabi-gdb build/stm32F429freertos-lcd-demo.elf
+  (gdb) target extended-remote localhost:3333
+  (gdb) monitor reset halt
+  (gdb) load
+  (gdb) monitor reset
+  ```
+
+### Known display constraint
+
+The ILI9341 panel is 240px wide. `BSP_LCD_DisplayStringAt()`'s `CENTER_MODE`
+math underflows (unsigned wraparound) for strings that don't fit the current
+font's width — e.g. at `Font24` (17px/char) only 14 characters fit per line.
+Longer strings must use a narrower font (`Font16` = 11px/char, fits 21 chars).
+
 ## Overview
 
 **STM32Cube** is an STMicroelectronics original initiative to ease developers' life by reducing efforts, time and cost.
