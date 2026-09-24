@@ -38,3 +38,28 @@ shared header (like `FreeRTOSConfig.h`) didn't force dependent `.c` files
 (like FreeRTOS's `port.c`) to recompile — stale `.o` files got silently
 relinked. Fixed by adding `-MMD -MP` to the compiler flags and including the
 generated `.d` dependency files in the Makefile.
+
+## Project structure
+
+- `Core/Inc`, `Core/Src` — application code: `main.c`, `stm32f4xx_it.c`,
+  `stm32f4xx_hal_conf.h`, `FreeRTOSConfig.h`, `system_stm32f4xx.c`.
+- `Drivers/CMSIS`, `Drivers/STM32F4xx_HAL_Driver` — ST's CMSIS device support
+  and HAL, fetched from ST's official free GitHub repos.
+- `Drivers/BSP/STM32F429I-Discovery`, `Drivers/BSP/Components` — the board's
+  BSP (LCD/touch/SDRAM/etc.) and the legacy-API display/touch/gyro component
+  drivers matched to it.
+- `Middlewares/Third_Party/FreeRTOS` — the FreeRTOS kernel (MIT license).
+- `Utilities/Fonts` — font bitmaps used by the LCD driver.
+- `Makefile`, `STM32F429ZITx_FLASH.ld` — free GNU Arm toolchain build/link
+  setup (no CubeMX/.ioc, no paid IDE).
+- `.vscode/tasks.json`, `.vscode/launch.json` — build + local
+  pyOCD/`arm-none-eabi-gdb` debug workflow (no OpenOCD).
+
+## Git status note
+
+As of this writing, only this explanation file and the `Drivers/BSP/STM32F429I-Discovery`
+file renames have been committed. Everything else listed above (`Core/`,
+`Drivers/CMSIS/`, `Drivers/STM32F4xx_HAL_Driver/`, `Drivers/BSP/Components/`,
+`Middlewares/`, `Utilities/`, `Makefile`, `STM32F429ZITx_FLASH.ld`, `.vscode/`,
+`.gitignore`) is still untracked/uncommitted — run `git add -A && git commit`
+to save the full project into version control.
