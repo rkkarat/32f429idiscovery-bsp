@@ -128,6 +128,19 @@ static void LCD_Task(void *argument)
   BSP_LCD_LayerDefaultInit(0, LCD_FRAME_BUFFER);
   BSP_LCD_SelectLayer(0);
   BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
+  /* A fixed handful of throwaway reads wasn't enough: the STMPE811 can keep
+     reporting a stale/phantom touch for longer than that right after init,
+     which swallows the very first real tap (typically "Shutdown", since
+     "Clear" happening to be tapped first "used up" the stale reading instead).
+     Instead, actively wait until the controller reports a clean run of
+     consecutive "no touch" polls before trusting it, with a timeout in case
+     a finger is already resting on the panel at boot. */
+  for (uint16_t settled = 0, tries = 0; settled < 10 && tries < 100; tries++)
+  {
+    BSP_TS_GetState(&tsState);
+    settled = tsState.TouchDetected ? 0 : (settled + 1);
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
   LCD_DrawDemoScreen();
 
   for (;;)
@@ -170,6 +183,16 @@ static void LCD_Task(void *argument)
       {
         LCD_DrawDemoScreen();
       }
+
+      /* Wait for the finger to fully lift before returning to the loop, so a
+         lingering/held touch from this tap can't be misread as (or block) the
+         next distinct tap - e.g. on the "Shutdown" button right below it. */
+      do
+      {
+        vTaskDelay(pdMS_TO_TICKS(20));
+        BSP_TS_GetState(&tsState);
+      } while (tsState.TouchDetected);
+      touchOnClear = 0;
     }
     prevClearTouch = touchOnClear;
 
