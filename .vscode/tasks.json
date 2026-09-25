@@ -62,13 +62,13 @@
     {
       "label": "Commit and Push to Private Repository",
       "type": "shell",
-      "command": "if ((git remote) -contains 'origin') { git remote rename origin upstream }; if (-not ((git remote) -contains 'private')) { git remote add private '${input:privateRepositoryUrl}' }; if (-not ((git remote) -contains 'public')) { git remote add public 'https://github.com/rkkarat/32f429idiscovery-bsp.git' }; make; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git add -A; git commit -m '${input:commitMessage}'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git push -u private ${input:branchName}",
+      "command": "$publicUrl = '${input:publicRepositoryUrl}'; if ((git remote) -contains 'origin') { git remote rename origin upstream }; if (-not ((git remote) -contains 'private')) { git remote add private '${input:privateRepositoryUrl}' }; if ((git remote) -contains 'public') { git remote set-url public $publicUrl } else { git remote add public $publicUrl }; make; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git add -A; git commit -m '${input:commitMessage}'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git push -u private ${input:branchName}",
       "problemMatcher": []
     },
     {
       "label": "Push to Public Repository",
       "type": "shell",
-      "command": "if (-not ((git remote) -contains 'public')) { git remote add public 'https://github.com/rkkarat/32f429idiscovery-bsp.git' }; git push -u public ${input:branchName}",
+      "command": "$publicUrl = '${input:publicRepositoryUrl}'; if ((git remote) -contains 'public') { git remote set-url public $publicUrl } else { git remote add public $publicUrl }; git push -u public ${input:branchName}",
       "problemMatcher": []
     }
   ],
@@ -77,6 +77,13 @@
       "id": "privateRepositoryUrl",
       "type": "promptString",
       "description": "Private repository URL",
+      "password": false
+    },
+    {
+      "id": "publicRepositoryUrl",
+      "type": "promptString",
+      "description": "Public repository URL",
+      "default": "https://github.com/rkkarat/32f429idiscovery-bsp.git",
       "password": false
     },
     {
