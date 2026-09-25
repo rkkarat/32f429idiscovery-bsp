@@ -58,6 +58,38 @@
       "dependsOrder": "sequence",
       "dependsOn": ["Build Clear-Display Firmware", "Start pyOCD GDB Server"],
       "problemMatcher": []
+    },
+    {
+      "label": "Commit and Push to Private Repository",
+      "type": "shell",
+      "command": "if ((git remote) -contains 'origin') { git remote rename origin upstream }; if (-not ((git remote) -contains 'private')) { git remote add private '${input:privateRepositoryUrl}' }; if (-not ((git remote) -contains 'public')) { git remote add public 'https://github.com/rkkarat/32f429idiscovery-bsp.git' }; make; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git add -A; git commit -m '${input:commitMessage}'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git push -u private ${input:branchName}",
+      "problemMatcher": []
+    },
+    {
+      "label": "Push to Public Repository",
+      "type": "shell",
+      "command": "if (-not ((git remote) -contains 'public')) { git remote add public 'https://github.com/rkkarat/32f429idiscovery-bsp.git' }; git push -u public ${input:branchName}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "privateRepositoryUrl",
+      "type": "promptString",
+      "description": "Private repository URL",
+      "password": false
+    },
+    {
+      "id": "commitMessage",
+      "type": "promptString",
+      "description": "Commit message",
+      "default": "Fix touch menu reliability and finalize LCD demo"
+    },
+    {
+      "id": "branchName",
+      "type": "promptString",
+      "description": "Branch to push",
+      "default": "freertos-lcd-demo"
     }
   ]
 }

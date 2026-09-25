@@ -71,6 +71,7 @@ static void LED_Task(void *argument)
   for (;;)
   {
     BSP_LED_Toggle(LED3);
+    BSP_LED_Toggle(LED4);
     vTaskDelay(pdMS_TO_TICKS(500));
   }
 }
