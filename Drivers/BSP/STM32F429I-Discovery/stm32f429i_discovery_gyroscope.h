@@ -81,6 +81,7 @@ uint8_t BSP_GYRO_ReadID(void);
 void    BSP_GYRO_ITConfig(GYRO_InterruptConfigTypeDef *pIntConfigStruct);
 void    BSP_GYRO_EnableIT(uint8_t IntPin);
 void    BSP_GYRO_DisableIT(uint8_t IntPin);
+uint8_t BSP_GYRO_DataReady(void);
 void    BSP_GYRO_GetXYZ(float *pfData);
 
 /**

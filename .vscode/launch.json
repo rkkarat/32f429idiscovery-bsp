@@ -6,11 +6,14 @@
       "type": "cortex-debug",
       "request": "launch",
       "servertype": "stlink",
-      "device": "STM32F429ZI",
       "interface": "swd",
+      "windows": {
+        "gdbPath": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin\\arm-none-eabi-gdb.exe"
+      },
       "executable": "${workspaceFolder}/build/stm32F429freertos-lcd-demo.elf",
       "cwd": "${workspaceFolder}",
-      "runToEntryPoint": "main",
+      "runToEntryPoint": "",
+      "breakAfterReset": false,
       "preLaunchTask": "Build Firmware"
     }
   ]

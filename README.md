@@ -17,7 +17,26 @@ for the story of the SysTick/FreeRTOS integration bug and its fix.
 
 - `LED_Task` toggles LED3 every 500 ms.
 - `LCD_Task` initializes the LTDC/ILI9341 display (240x320) and continuously
-  draws a title, a live uptime counter, and an animated bouncing box.
+  draws a title, a live uptime counter, and an animated bouncing box. Tap
+  **Gyroscope** to open a separate screen with signed X, Y, and Z angular
+  rates in degrees per second (`dps`), updated about five times a second.
+  Rotate the board to see the readings change, then tap **Back** to return.
+  **Calibrate** is optional: set the board on a stable surface, tap the
+  button, and keep it still for about three seconds. This zeros the resting
+  X, Y, and Z offsets until reset. If the readings vary too much, the screen
+  reports `Motion - try again` and keeps the previous offsets.
+  If the sensor is not detected, that screen displays `Gyro unavailable`.
+- A dedicated `Gyro` FreeRTOS task polls for fresh sensor data once per RTOS
+  tick (1 ms). The L3GD20 uses its highest output-data-rate setting; the LCD
+  still refreshes at about 5 Hz. Tap **Start log** on the Gyroscope screen to
+  start a new capture, and **Stop log** to freeze it. Recording continues
+  until stopped even if you leave the Gyroscope screen.
+- After stopping, pause the debugger and expand `gyroLog` in VS Code Watch.
+  The buffer keeps the latest 50 sets in RAM. Each valid entry contains the
+  RTOS `tick` and the uncalibrated `xMdps`, `yMdps`, and `zMdps` readings
+  (divide by 1,000 for degrees/second). If `count` is nonzero, the oldest
+  entry is at `(nextWrite + 50 - count) % 50`; read `count` entries, wrapping
+  at 50. Starting another capture replaces the previous history.
 
 ### Project structure
 
@@ -56,12 +75,21 @@ make clean
 
 ### Flashing / debugging (no OpenOCD, no paid tools)
 
-Uses [pyOCD](https://github.com/pyocd/pyOCD) (free, Apache-2.0) as a local GDB
-server, and the local `arm-none-eabi-gdb` as the debugger front end — this
-avoids any dependency on OpenOCD or a paid IDE/toolchain.
+VS Code uses the ST-LINK GDB server and STM32CubeProgrammer bundled with
+STM32CubeIDE. The manual workflow below still uses [pyOCD](https://github.com/pyocd/pyOCD).
 
-- In VS Code: Run and Debug → **STM32F429 Debug (GDB local + pyOCD)** (builds
+- In VS Code: Run and Debug → **STM32F429 Cortex-Debug (ST-LINK)** (builds
   and flashes automatically via `.vscode/tasks.json` + `launch.json`).
+  Cortex-Debug discovers the ST-LINK server and programmer in the standard
+  STM32CubeIDE installation; no separate GDB-server task is needed.
+  The firmware starts without pausing at `main`; set a breakpoint there if
+  you want to step through initialization. If it still stops at `main`, disable
+  any existing breakpoint there in VS Code's Breakpoints panel and relaunch.
+  On Windows, `windows.gdbPath` in [launch.json](.vscode/launch.json) selects the
+  STM32CubeIDE-bundled GNU Tools for STM32 14.3 GDB to avoid the CP1252 conversion
+  warning in Arm GNU Toolchain 14.2. Update that path if CubeIDE is installed
+  elsewhere. If GDB reports that source is newer than the executable, stop the
+  session, run `make -B` once, and relaunch.
 - Manually:
   ```powershell
   pyocd gdbserver --target stm32f429xi

@@ -11,7 +11,15 @@ board, built entirely with free/open-source tools (GNU Arm Embedded Toolchain
 - `LCD_Task` (FreeRTOS task) initializes the LTDC/ILI9341 display (240x320)
   and the resistive touchscreen (STMPE811), then continuously:
   - Draws a title, a live "Uptime: Ns" counter, and an animated bouncing box.
-  - Draws two stacked on-screen touch buttons at the bottom of the screen:
+  - Draws three stacked on-screen touch buttons at the bottom of the screen:
+    - **Gyroscope** — opens a separate screen with signed X, Y, and Z angular
+      rates in degrees per second, or `Gyro unavailable` if initialization fails.
+      **Calibrate** optionally averages stationary samples to subtract the
+      resting offset on each axis. The offsets are stored in RAM until reset.
+      **Start log** and **Stop log** control a 50-sample rolling history from
+      a dedicated `Gyro` task. Once stopped, inspect `gyroLog` in GDB or
+      VS Code Watch; live readings continue updating.
+      Tap **Back** to return to the demo.
     - **Clear** — non-destructive toggle: blanks the screen / restores the
       demo. The program keeps running.
     - **Shutdown** — one-way, permanent halt: blanks the screen, turns off
@@ -37,7 +45,8 @@ board, built entirely with free/open-source tools (GNU Arm Embedded Toolchain
   clear-display firmware so the board ends up genuinely blank.
 
 **VS Code debug** (`.vscode/launch.json`): `STM32F429 Cortex-Debug (ST-LINK)`
-config using the `cortex-debug` extension.
+uses the `cortex-debug` extension with STM32CubeIDE's ST-LINK GDB server
+and the board's onboard probe.
 
 ## How and where to access it
 
@@ -71,7 +80,7 @@ config using the `cortex-debug` extension.
     (gdb) monitor reset
     ```
 - **On the board itself:** once flashed and running, use the two on-screen
-  touch buttons ("Clear" / "Shutdown") described above — no PC connection
+  touch buttons described above — no PC connection
   needed to operate them.
 
 ## The bug that caused "only LED blinks, no display"
@@ -127,7 +136,7 @@ generated `.d` dependency files in the Makefile.
 - `Makefile`, `STM32F429ZITx_FLASH.ld` — free GNU Arm toolchain build/link
   setup (no CubeMX/.ioc, no paid IDE).
 - `.vscode/tasks.json`, `.vscode/launch.json` — build + local
-  pyOCD/`arm-none-eabi-gdb` debug workflow (no OpenOCD).
+  ST-LINK debug launch and pyOCD erase workflow (no OpenOCD).
 
 ## Git status note
 
