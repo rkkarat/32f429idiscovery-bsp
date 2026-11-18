@@ -6,9 +6,9 @@
 
 This repository has been extended from the standalone BSP component into a
 complete, buildable firmware project for the STM32F429I-Discovery board:
-FreeRTOS running two tasks, one of which drives the onboard LTDC/ILI9341 LCD.
-Everything is built with free, open-source tools only — no CubeMX/.ioc file,
-no paid IDE or compiler.
+FreeRTOS runs separate LED and LCD tasks, plus a gyroscope task when the
+sensor is available. The firmware builds with GNU Arm Embedded and GNU Make;
+no CubeMX project or paid compiler is required.
 
 See [STM32F429_FreeRTOS_LCD_Explanation.md](STM32F429_FreeRTOS_LCD_Explanation.md)
 for the story of the SysTick/FreeRTOS integration bug and its fix.
@@ -22,12 +22,14 @@ for the story of the SysTick/FreeRTOS integration bug and its fix.
   rates in degrees per second (`dps`), updated about five times a second.
   Rotate the board to see the readings change, then tap **Back** to return.
   **Calibrate** is optional: set the board on a stable surface, tap the
-  button, and keep it still for about three seconds. This zeros the resting
-  X, Y, and Z offsets until reset. If the readings vary too much, the screen
-  reports `Motion - try again` and keeps the previous offsets.
+  button, and keep it still for about three seconds. This estimates and
+  subtracts the resting X, Y, and Z offsets until reset. If the readings vary
+  too much, the screen reports `Motion - try again` and keeps the previous
+  offsets.
   If the sensor is not detected, that screen displays `Gyro unavailable`.
-- A dedicated `Gyro` FreeRTOS task polls for fresh sensor data once per RTOS
-  tick (1 ms). The L3GD20 uses its highest output-data-rate setting; the LCD
+- A dedicated `Gyro` FreeRTOS task waits one RTOS tick (1 ms) between
+  data-ready checks. The L3GD20 uses its highest output-data-rate setting;
+  actual capture throughput was not measured on hardware. The LCD
   still refreshes at about 5 Hz. Tap **Start log** on the Gyroscope screen to
   start a new capture, and **Stop log** to freeze it. Recording continues
   until stopped even if you leave the Gyroscope screen.
@@ -37,6 +39,20 @@ for the story of the SysTick/FreeRTOS integration bug and its fix.
   (divide by 1,000 for degrees/second). If `count` is nonzero, the oldest
   entry is at `(nextWrite + 50 - count) % 50`; read `count` entries, wrapping
   at 50. Starting another capture replaces the previous history.
+
+### Changes in `freertos-lcd-demo`
+
+The firmware and debugger changes are in commit
+[`95559a2cc`](https://github.com/rkkarat/32f429idiscovery-bsp/commit/95559a2cc9bc4772a0f32da68b01a5b6a8cce870).
+
+| Area | What changed |
+|---|---|
+| Touch menu | Added a dedicated **Gyroscope** screen with live X/Y/Z readings and **Back** navigation. **Clear/Show** and **Shutdown** remain on the main screen. Touch polling runs separately from redraws, and holding **Back** does not trigger **Shutdown** at the same position. |
+| Calibration | Added optional stationary calibration that averages ten samples after a settling period. An unstable set is rejected without replacing the previous offsets. Only the displayed rates are corrected; the log retains uncalibrated values. |
+| Acquisition and recording | Moved sensor reads out of the LCD task into the dedicated `Gyro` task. **Start log** begins a new capture; **Stop log** freezes the latest 50 timestamped samples without stopping live readings. The log lives in RAM and is lost on reset. |
+| Board driver | Added `BSP_GYRO_DataReady()` so the task only reads when the sensor reports a fresh XYZ set. Enabled block-data update on the L3GD20 to prevent an axis reading from changing mid-read. The gyro task starts after LCD initialization, and a mutex protects SPI5 access shared with the LCD power-off command. |
+| VS Code debugging | Switched the active launch to ST's ST-LINK GDB server over SWD. Kept `Build Firmware` as the pre-launch task, selected the STM32CubeIDE GDB client on Windows to avoid the CP1252 warning, and disabled the automatic stop at `main`. pyOCD remains available for manual debugging and the existing erase workflow. |
+| Verification | `make all clear` completed successfully for both firmware variants. GDB confirmed that the log holds 50 sample records, and an ST-LINK connection to the board was verified without flashing. |
 
 ### Project structure
 
@@ -70,6 +86,7 @@ Requires `arm-none-eabi-gcc` and GNU `make` on `PATH`.
 
 ```powershell
 make            # builds build/stm32F429freertos-lcd-demo.elf/.hex/.bin
+make clear      # builds build-clear/clear-display.elf/.hex/.bin
 make clean
 ```
 
@@ -99,6 +116,14 @@ STM32CubeIDE. The manual workflow below still uses [pyOCD](https://github.com/py
   (gdb) load
   (gdb) monitor reset
   ```
+
+Typical debugger messages: radix and reset/halt messages during startup are
+normal. An initial `0x1fff4abe in ?? ()` means GDB attached while the CPU was
+in STM32 system ROM, where the application ELF has no symbols. If the demo
+starts after flashing, no action is needed. If it stays in ROM, check the
+gdb-server terminal for flash/reset errors and verify BOOT0 is low for normal
+flash boot. `SIGINT` in `prvIdleTask` after clicking **Pause** is also normal;
+press **F5** to continue.
 
 ### Known display constraint
 
