@@ -1,4 +1,4 @@
-# STM32F429I-Discovery: FreeRTOS + LCD demo — how it works
+# FreeRTOs-Gyros-LTDC Test — how it works
 
 ## Program description
 

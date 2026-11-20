@@ -1,8 +1,8 @@
-# BSP STM32F429I-DISCOVERY Component
+# FreeRTOs-Gyros-LTDC Test
 
 ![latest tag](https://img.shields.io/github/v/tag/STMicroelectronics/stm32f429i-discovery.svg?color=brightgreen)
 
-## FreeRTOS + LCD demo project
+## STM32F429I-DISCOVERY firmware
 
 This repository has been extended from the standalone BSP component into a
 complete, buildable firmware project for the STM32F429I-Discovery board:
@@ -90,6 +90,31 @@ make clear      # builds build-clear/clear-display.elf/.hex/.bin
 make clean
 ```
 
+### STM32CubeIDE / CubeMX
+
+- **Edit pins and clocks:** Open [STM32F429Discovery.ioc](./cubeide/STM32F429Discovery.ioc)
+  in STM32CubeMX. It maps SWD, the LCD (LTDC and DMA2D), FMC SDRAM, I2C3 touch,
+  SPI5 gyro/LCD control, and the LEDs. The clock uses the internal HSI and PLL
+  for 90 MHz SYSCLK and a 6 MHz LCD pixel clock, matching the demo.
+- **Generate a native CubeIDE project:** Copy the `.ioc` to an empty folder
+  outside the repository. Open that copy in CubeMX, verify the toolchain is
+  **STM32CubeIDE**, and click **Generate Code**. In CubeIDE, use
+  **File > Import > General > Existing Projects into Workspace** and select
+  the generated folder. The generated project is a hardware initialization
+  starting point, not the FreeRTOS/LCD demo. CubeMX's SDRAM write recovery is
+  3 cycles (its minimum for these timings); the demo's BSP uses 2 cycles.
+  CubeMX also derives 2 flash wait states at 90 MHz, while the demo uses 5.
+- **Build the actual demo in CubeIDE:** Use **File > New > Makefile Project
+  with Existing Code**, select the repository root as the existing code
+  location, and select the ARM GCC toolchain (or **None** if GNU `make` and
+  `arm-none-eabi-gcc` are already on CubeIDE's `PATH`). Build target `all`
+  using the existing Makefile. For ST-LINK debugging, select
+  `build/stm32F429freertos-lcd-demo.elf` as the C/C++ application.
+
+The demo's BSP and FreeRTOS initialization remain in the existing source
+tree. Changing the `.ioc` does not change the Makefile build; apply any
+intended hardware changes to the demo's sources separately.
+
 ### Flashing / debugging (no OpenOCD, no paid tools)
 
 VS Code uses the ST-LINK GDB server and STM32CubeProgrammer bundled with
@@ -107,6 +132,12 @@ STM32CubeIDE. The manual workflow below still uses [pyOCD](https://github.com/py
   warning in Arm GNU Toolchain 14.2. Update that path if CubeIDE is installed
   elsewhere. If GDB reports that source is newer than the executable, stop the
   session, run `make -B` once, and relaunch.
+- For an interactive `(gdb)` prompt in the integrated Terminal, stop any active
+  F5 debugging session and choose **Terminal → Run Task → Debug Firmware in
+  Terminal (GDB)**. This builds the firmware, starts the pyOCD server, and
+  connects GDB without flashing automatically. To flash and run the new build,
+  enter `monitor reset halt`, `load`, then `continue`. Type `quit` when done.
+  If the pyOCD task is still running afterward, stop it before using F5 again.
 - Manually:
   ```powershell
   pyocd gdbserver --target stm32f429xi

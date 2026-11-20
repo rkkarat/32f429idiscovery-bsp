@@ -139,8 +139,8 @@ static void LCD_DrawDemoScreen(void)
   BSP_LCD_Clear(LCD_COLOR_WHITE);
   /* Font16 (11px/char) is required here: the panel is 240px wide, and BSP_LCD_DisplayStringAt's
      centering math underflows (uint32_t wraparound) for strings that don't fit at Font24 (17px/char). */
-  BSP_LCD_SetFont(&Font16);
-  BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"FreeRTOS + LTDC Demo", CENTER_MODE);
+  BSP_LCD_SetFont(&Font12 );
+  BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"FreeRTOS-LTDC-GyroscopeDemo", CENTER_MODE);
   BSP_LCD_DisplayStringAt(0, 30, (uint8_t *)"STM32F429I-Discovery", CENTER_MODE);
   BSP_LCD_SetFont(&Font24);
   LCD_DrawButton(GYRO_BTN_Y, LCD_COLOR_BLUE, "Gyroscope");

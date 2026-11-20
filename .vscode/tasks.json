@@ -30,6 +30,24 @@
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
+      "label": "Debug Firmware in Terminal (GDB)",
+      "type": "process",
+      "command": "arm-none-eabi-gdb",
+      "windows": {
+        "command": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin\\arm-none-eabi-gdb.exe"
+      },
+      "args": [
+        "-q",
+        "build/stm32F429freertos-lcd-demo.elf",
+        "-ex", "target extended-remote 127.0.0.1:3333"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build Firmware", "Start pyOCD GDB Server"],
+      "presentation": { "reveal": "always", "focus": true, "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Build Clear-Display Firmware",
       "type": "shell",
       "command": "make",
@@ -69,6 +87,12 @@
       "label": "Push to Public Repository",
       "type": "shell",
       "command": "$publicUrl = '${input:publicRepositoryUrl}'; if ((git remote) -contains 'public') { git remote set-url public $publicUrl } else { git remote add public $publicUrl }; git push -u public ${input:branchName}",
+      "problemMatcher": []
+    },
+    {
+      "label": "Fetch Current Public Repository",
+      "type": "shell",
+      "command": "$publicUrl = '${input:publicRepositoryUrl}'; if ((git remote) -contains 'public') { git remote set-url public $publicUrl } else { git remote add public $publicUrl }; git fetch public ${input:branchName}; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git merge --ff-only public/${input:branchName}",
       "problemMatcher": []
     }
   ],

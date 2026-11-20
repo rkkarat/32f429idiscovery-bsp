@@ -2,6 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "showDevDebugOutput": "raw",
       "name": "STM32F429 Cortex-Debug (ST-LINK)",
       "type": "cortex-debug",
       "request": "launch",
